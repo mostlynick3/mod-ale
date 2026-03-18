@@ -68,7 +68,7 @@ public:
     // Get wrapped object pointer
     void* GetObj() const { return object; }
     // Returns whether the object is valid or not
-    bool IsValid() const { return !callstackid || callstackid == sALE->GetCallstackId(); }
+    bool IsValid() const { return !callstackid || callstackid == ALE::GALE->GetCallstackId(); }
     // Returns whether the object can be invalidated or not
     bool CanInvalidate() const { return _invalidate; }
     // Returns pointer to the wrapped object's type name
@@ -87,7 +87,7 @@ public:
         ASSERT(!valid || (valid && object));
         if (valid)
             if (CanInvalidate())
-                callstackid = sALE->GetCallstackId();
+                callstackid = ALE::GALE->GetCallstackId();
             else
                 callstackid = 0;
         else

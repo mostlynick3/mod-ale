@@ -52,6 +52,10 @@ bool ALE::initialized = false;
 ALE::LockType ALE::lock;
 std::unique_ptr<ALEFileWatcher> ALE::fileWatcher;
 
+// Multistate handling
+std::map<uint32, ALE*> ALE::g_states;
+std::shared_mutex ALE::g_states_mutex;
+
 // Global bytecode cache that survives ALE reloads
 static std::unordered_map<std::string, GlobalCacheEntry> globalBytecodeCache;
 static std::unordered_map<std::string, std::time_t> timestampCache;
@@ -75,7 +79,7 @@ void ALE::Initialize()
     initialized = true;
 
     // Create global ALE
-    GALE = new ALE();
+    GALE = new ALE(nullptr, ALE_GLOBAL_STATE);
 
     // Start file watcher if enabled
     if (ALEConfig::GetInstance().IsAutoReloadEnabled())
@@ -98,6 +102,15 @@ void ALE::Uninitialize()
         fileWatcher.reset();
     }
 
+    {
+        std::unique_lock lock(g_states_mutex);
+        for (auto& [mapId, state] : g_states)
+        {
+            delete state;
+        }
+        g_states.clear();
+    }
+    
     delete GALE;
     GALE = NULL;
 
@@ -108,6 +121,33 @@ void ALE::Uninitialize()
     ClearGlobalCache();
 
     initialized = false;
+}
+
+ALE** ALE::CreateMapState(uint32 mapId)
+{
+    ALE** slotPtr;
+    {
+        std::unique_lock lock(g_states_mutex);
+        ASSERT(g_states.find(mapId) == g_states.end());
+        auto& slot = g_states[mapId];
+        slot = nullptr;
+        slotPtr = &slot;
+        slot = new ALE(slotPtr, mapId);
+    }
+
+    (*slotPtr)->RunScripts();
+    return slotPtr;
+}
+
+void ALE::DestroyMapState(uint32 mapId)
+{
+    std::unique_lock lock(g_states_mutex);
+    auto it = g_states.find(mapId);
+    if (it != g_states.end())
+    {
+        delete it->second;
+        g_states.erase(it);
+    }
 }
 
 void ALE::LoadScriptPaths()
@@ -162,24 +202,35 @@ void ALE::_ReloadALE()
         ChatHandler(nullptr).SendGMText(SERVER_MSG_STRING, "Reloading ALE...");
 
     // Remove all timed events
-    sALE->eventMgr->SetStates(LUAEVENT_STATE_ERASE);
+    ALE::GALE->eventMgr->SetStates(LUAEVENT_STATE_ERASE);
 
     // Close lua
-    sALE->CloseLua();
+    ALE::GALE->CloseLua();
 
     // Reload script paths
     LoadScriptPaths();
 
     // Open new lua and libaraies
-    sALE->OpenLua();
+    ALE::GALE->OpenLua();
 
     // Run scripts from laoded paths
-    sALE->RunScripts();
+    ALE::GALE->RunScripts();
 
+    {
+        std::shared_lock lock(g_states_mutex);
+        for (auto& [mapId, state] : g_states)
+        {
+            state->eventMgr->SetStates(LUAEVENT_STATE_ERASE);
+            state->CloseLua();
+            state->OpenLua();
+            state->RunScripts();
+        }
+    }
+    
     reload = false;
 }
 
-ALE::ALE() :
+ALE::ALE(ALE** _selfPtr, uint32 mapId) :
 event_level(0),
 push_counter(0),
 
@@ -187,6 +238,9 @@ L(NULL),
 eventMgr(NULL),
 httpManager(),
 queryProcessor(),
+
+selfPtr(_selfPtr),
+stateMapId(mapId),
 
 ServerEventBindings(NULL),
 PlayerEventBindings(NULL),
@@ -215,11 +269,8 @@ CreatureUniqueBindings(NULL)
 
     OpenLua();
 
-    // Replace this with map insert if making multithread version
-
-    // Set event manager. Must be after setting sALE
-    // on multithread have a map of state pointers and here insert this pointer to the map and then save a pointer of that pointer to the EventMgr
-    eventMgr = new EventMgr(&ALE::GALE);
+    ALE** evtPtr = selfPtr ? selfPtr : &ALE::GALE;
+    eventMgr = new EventMgr(evtPtr);
 }
 
 ALE::~ALE()
@@ -837,7 +888,7 @@ int ALE::StackTrace(lua_State *_L)
 
     // dirty stack?
     // Stack: errmsg, debug, tracemsg
-    sALE->OnError(std::string(lua_tostring(_L, -1)));
+    ALE::GALE->OnError(std::string(lua_tostring(_L, -1)));
     return 1;
 }
 

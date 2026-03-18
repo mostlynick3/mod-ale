@@ -28,11 +28,11 @@ ALEEventProcessor::~ALEEventProcessor()
 {
     // can be called from multiple threads
     {
-        LOCK_ALE;
+        ALE::Guard guard((*E)->GetStateLock());
         RemoveEvents_internal();
     }
 
-    if (obj && ALE::IsInitialized())
+    if (obj && ALE::IsInitialized() && *E && (*E)->eventMgr)
     {
         EventMgr::Guard guard((*E)->eventMgr->GetLock());
         (*E)->eventMgr->processors.erase(this);

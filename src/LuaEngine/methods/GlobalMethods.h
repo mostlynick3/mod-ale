@@ -146,8 +146,16 @@ namespace LuaGlobalFunctions
      */
     int GetStateMap(lua_State* L)
     {
-        // Until AC supports multistate, this will always return nil
-        ALE::Push(L);
+        ALE* E = ALE::GetALE(L);
+        if (E->GetStateMapId() == ALE_GLOBAL_STATE)
+        {
+            ALE::Push(L);
+            return 1;
+        }
+        
+        // Get the map object and push it
+        Map* map = sMapMgr->FindMap(E->GetStateMapId(), 0);
+        ALE::Push(L, map);
         return 1;
     }
 
@@ -158,8 +166,13 @@ namespace LuaGlobalFunctions
      */
     int GetStateMapId(lua_State* L)
     {
-        // Until AC supports multistate, this will always return -1
-        ALE::Push(L, -1);
+        ALE* E = ALE::GetALE(L);
+        if (E->GetStateMapId() == ALE_GLOBAL_STATE)
+        {
+            ALE::Push(L, -1);
+            return 1;
+        }
+        ALE::Push(L, (int32)E->GetStateMapId());
         return 1;
     }
 
@@ -1445,7 +1458,9 @@ namespace LuaGlobalFunctions
             return 0;
         }
 
-        ALE::GALE->queryProcessor.AddCallback(db.AsyncQuery(query).WithCallback([L, funcRef](QueryResult result)
+        ALE* sALE = ALE::GetALE(L);
+
+        sALE->queryProcessor.AddCallback(db.AsyncQuery(query).WithCallback([L, funcRef, sALE](QueryResult result)
             {
                 ALEQuery* eq = result ? new ALEQuery(result) : nullptr;
 
@@ -1458,7 +1473,7 @@ namespace LuaGlobalFunctions
                 ALE::Push(L, eq);
 
                 // Call function
-                ALE::GALE->ExecuteCall(1, 0);
+                sALE->ExecuteCall(1, 0);
 
                 luaL_unref(L, LUA_REGISTRYINDEX, funcRef);
             }));
@@ -2699,7 +2714,8 @@ namespace LuaGlobalFunctions
         int funcRef = luaL_ref(L, LUA_REGISTRYINDEX);
         if (funcRef >= 0)
         {
-            ALE::GALE->httpManager.PushRequest(new HttpWorkItem(funcRef, httpVerb, url, body, bodyContentType, headers));
+            ALE* sALE = ALE::GetALE(L);
+            sALE->httpManager.PushRequest(new HttpWorkItem(funcRef, sALE, httpVerb, url, body, bodyContentType, headers));
         }
         else
         {
