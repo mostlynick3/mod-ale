@@ -233,17 +233,16 @@ void ALE::_ReloadALE()
 }
 
 ALE::ALE(ALE** _selfPtr, uint32 mapId, uint32 instanceId) :
+stateMapId(mapId),
+stateInstanceId(instanceId),
 event_level(0),
 push_counter(0),
+selfPtr(_selfPtr),
 
 L(NULL),
 eventMgr(NULL),
 httpManager(),
 queryProcessor(),
-
-selfPtr(_selfPtr),
-stateMapId(mapId),
-stateInstanceId(instanceId),
 
 ServerEventBindings(NULL),
 PlayerEventBindings(NULL),
