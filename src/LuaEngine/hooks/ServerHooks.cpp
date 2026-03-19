@@ -339,9 +339,9 @@ void ALE::OnPlayerLeave(Map* map, Player* player)
 
 void ALE::OnUpdate(Map* map, uint32 diff)
 {
+    eventMgr->globalProcessor->Update(diff);
+    
     START_HOOK_MAP(MAP_EVENT_ON_UPDATE);
-    // enable this for multithread
-    // eventMgr->globalProcessor->Update(diff);
     Push(map);
     Push(diff);
     CallAllFunctions(ServerEventBindings, key);
