@@ -124,6 +124,7 @@ public:
 
     LockType& GetStateLock() { return stateLock; }
     uint32 GetStateMapId() const { return stateMapId; }
+    uint32 GetStateInstanceId() const { return stateInstanceId; }
     ALE** GetSelfPtr() { return selfPtr ? selfPtr : &ALE::GALE; }
     
     static void RunScriptsOnAllMapStates()
@@ -136,6 +137,7 @@ public:
 private:
     LockType stateLock;
     uint32 stateMapId;
+    uint32 stateInstanceId;
 
     static bool reload;
     static bool initialized;
@@ -153,7 +155,7 @@ private:
     static std::string lua_requirecpath;
 
     // Per-map states. std::map used for pointer stability on insert/erase.
-    static std::map<uint32, ALE*> g_states;
+    static std::map<uint64, ALE*> g_states;
     static std::shared_mutex g_states_mutex;
     
     // A counter for lua event stacks that occur (see event_level).
@@ -176,7 +178,7 @@ private:
 
     ALE** selfPtr;
 
-    ALE(ALE** selfPtr = nullptr, uint32 mapId = ALE_GLOBAL_STATE);
+    ALE(ALE** selfPtr = nullptr, uint32 mapId = ALE_GLOBAL_STATE, uint32 instanceId = 0);
     ~ALE();
 
     // Prevent copy
@@ -293,28 +295,31 @@ public:
     static LockType& GetLock() { return lock; };
     static bool IsInitialized() { return initialized; }
 
-    static ALE* GetMapState(uint32 mapId)
+    static ALE* GetMapState(uint32 mapId, uint32 instanceId = 0)
     {
         std::shared_lock lock(g_states_mutex);
-        auto it = g_states.find(mapId);
+        uint64 key = ((uint64)mapId << 32) | instanceId;
+        auto it = g_states.find(key);
         return it != g_states.end() ? it->second : nullptr;
     }
 
-    static ALE* GetMapStateOrGlobal(uint32 mapId)
+    static ALE* GetMapStateOrGlobal(uint32 mapId, uint32 instanceId = 0)
     {
         std::shared_lock lock(g_states_mutex);
-        auto it = g_states.find(mapId);
+        uint64 key = ((uint64)mapId << 32) | instanceId;
+        auto it = g_states.find(key);
         return it != g_states.end() ? it->second : GALE;
     }
 
-    static ALE** CreateMapState(uint32 mapId);
-    static void DestroyMapState(uint32 mapId);
+    static ALE** CreateMapState(uint32 mapId, uint32 instanceId = 0);
+    static void DestroyMapState(uint32 mapId, uint32 instanceId = 0);
 
     // Returns a stable pointer-to-pointer for the map state slot, for use by ALEEventProcessor.
-    static ALE** GetMapStateSlot(uint32 mapId)
+    static ALE** GetMapStateSlot(uint32 mapId, uint32 instanceId = 0)
     {
         std::shared_lock lock(g_states_mutex);
-        auto it = g_states.find(mapId);
+        uint64 key = ((uint64)mapId << 32) | instanceId;
+        auto it = g_states.find(key);
         ASSERT(it != g_states.end());
         return &it->second;
     }

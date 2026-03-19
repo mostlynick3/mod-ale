@@ -288,8 +288,8 @@ public:
     {
         if (ALEConfig::GetInstance().IsMultistateEnabled())
         {
-            if (!ALE::GetMapState(map->GetId()))
-                ALE::CreateMapState(map->GetId());
+            if (!ALE::GetMapState(map->GetId(), map->GetInstanceId()))
+                ALE::CreateMapState(map->GetId(), map->GetInstanceId());
         }
         ALE::GetMapStateOrGlobal(map->GetId())->OnCreate(map);
     }
@@ -297,8 +297,8 @@ public:
     void OnDestroyMap(Map* map) override
     {
         ALE::GetMapStateOrGlobal(map->GetId())->OnDestroy(map);
-        if (ALEConfig::GetInstance().IsMultistateEnabled() && !map->Instanceable())
-            ALE::DestroyMapState(map->GetId());
+        if (ALEConfig::GetInstance().IsMultistateEnabled())
+            ALE::DestroyMapState(map->GetId(), map->GetInstanceId());
     }
 
     void OnPlayerEnterAll(Map* map, Player* player) override
@@ -1113,7 +1113,7 @@ public:
         {
             if (ALEConfig::GetInstance().IsMultistateEnabled())
             {
-                ALE** stateSlot = ALE::GetMapStateSlot(map->GetId());
+                ALE** stateSlot = ALE::GetMapStateSlot(map->GetId(), map->GetInstanceId());
                 object->ALEEvents = new ALEEventProcessor(stateSlot, object);
             }
             else

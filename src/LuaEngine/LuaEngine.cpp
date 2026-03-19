@@ -53,7 +53,7 @@ ALE::LockType ALE::lock;
 std::unique_ptr<ALEFileWatcher> ALE::fileWatcher;
 
 // Multistate handling
-std::map<uint32, ALE*> ALE::g_states;
+std::map<uint64, ALE*> ALE::g_states;
 std::shared_mutex ALE::g_states_mutex;
 
 // Global bytecode cache that survives ALE reloads
@@ -123,26 +123,28 @@ void ALE::Uninitialize()
     initialized = false;
 }
 
-ALE** ALE::CreateMapState(uint32 mapId)
+ALE** ALE::CreateMapState(uint32 mapId, uint32 instanceId)
 {
     ALE** slotPtr;
+    uint64 key = ((uint64)mapId << 32) | instanceId;
     {
         std::unique_lock lock(g_states_mutex);
-        ASSERT(g_states.find(mapId) == g_states.end());
-        auto& slot = g_states[mapId];
+        ASSERT(g_states.find(key) == g_states.end());
+        auto& slot = g_states[key];
         slot = nullptr;
         slotPtr = &slot;
-        slot = new ALE(slotPtr, mapId);
+        slot = new ALE(slotPtr, mapId, instanceId);
     }
 
     (*slotPtr)->RunScripts();
     return slotPtr;
 }
 
-void ALE::DestroyMapState(uint32 mapId)
+void ALE::DestroyMapState(uint32 mapId, uint32 instanceId)
 {
     std::unique_lock lock(g_states_mutex);
-    auto it = g_states.find(mapId);
+    uint64 key = ((uint64)mapId << 32) | instanceId;
+    auto it = g_states.find(key);
     if (it != g_states.end())
     {
         delete it->second;
@@ -230,7 +232,7 @@ void ALE::_ReloadALE()
     reload = false;
 }
 
-ALE::ALE(ALE** _selfPtr, uint32 mapId) :
+ALE::ALE(ALE** _selfPtr, uint32 mapId, uint32 instanceId) :
 event_level(0),
 push_counter(0),
 
@@ -241,6 +243,7 @@ queryProcessor(),
 
 selfPtr(_selfPtr),
 stateMapId(mapId),
+stateInstanceId(instanceId),
 
 ServerEventBindings(NULL),
 PlayerEventBindings(NULL),

@@ -12,7 +12,7 @@
 void ALEInstanceAI::Initialize()
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
 
     ASSERT(!sALE->HasInstanceData(instance));
 
@@ -27,7 +27,7 @@ void ALEInstanceAI::Initialize()
 void ALEInstanceAI::Load(const char* data)
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
 
     // If we get passed NULL (i.e. `Reload` was called) then use
     //   the last known save data (or maybe just an empty string).
@@ -110,7 +110,7 @@ void ALEInstanceAI::Load(const char* data)
 const char* ALEInstanceAI::Save() const
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
     lua_State* L = sALE->L;
     // Stack: (empty)
 
@@ -149,7 +149,7 @@ const char* ALEInstanceAI::Save() const
 uint32 ALEInstanceAI::GetData(uint32 key) const
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
     lua_State* L = sALE->L;
     // Stack: (empty)
 
@@ -172,7 +172,7 @@ uint32 ALEInstanceAI::GetData(uint32 key) const
 void ALEInstanceAI::SetData(uint32 key, uint32 value)
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
     lua_State* L = sALE->L;
     // Stack: (empty)
 
@@ -193,7 +193,7 @@ void ALEInstanceAI::SetData(uint32 key, uint32 value)
 uint64 ALEInstanceAI::GetData64(uint32 key) const
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
     lua_State* L = sALE->L;
     // Stack: (empty)
 
@@ -216,7 +216,7 @@ uint64 ALEInstanceAI::GetData64(uint32 key) const
 void ALEInstanceAI::SetData64(uint32 key, uint64 value)
 {
     LOCK_ALE;
-    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId());
+    ALE* sALE = ALE::GetMapStateOrGlobal(instance->GetId(), instance->GetInstanceId());
     lua_State* L = sALE->L;
     // Stack: (empty)
 

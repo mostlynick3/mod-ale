@@ -183,8 +183,8 @@ namespace LuaGlobalFunctions
      */
     int GetStateInstanceId(lua_State* L)
     {
-        // Until AC supports multistate, this will always return 0
-        ALE::Push(L, 0);
+        ALE* E = ALE::GetALE(L);
+        ALE::Push(L, E->GetStateInstanceId());
         return 1;
     }
 
