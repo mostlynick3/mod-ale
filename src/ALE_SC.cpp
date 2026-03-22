@@ -286,7 +286,7 @@ public:
 
     void OnCreateMap(Map* map) override
     {
-        if (ALEConfig::GetInstance().IsMultistateEnabled())
+        if (!ALEConfig::GetInstance().IsCompatibilityModeEnabled())
         {
             if (!ALE::GetMapState(map->GetId(), map->GetInstanceId()))
                 ALE::CreateMapState(map->GetId(), map->GetInstanceId());
@@ -297,7 +297,7 @@ public:
     void OnDestroyMap(Map* map) override
     {
         ALE::GetMapStateOrGlobal(map->GetId())->OnDestroy(map);
-        if (ALEConfig::GetInstance().IsMultistateEnabled())
+        if (!ALEConfig::GetInstance().IsCompatibilityModeEnabled())
             ALE::DestroyMapState(map->GetId(), map->GetInstanceId());
     }
 
@@ -1111,7 +1111,7 @@ public:
     {
         if (!object->ALEEvents)
         {
-            if (ALEConfig::GetInstance().IsMultistateEnabled())
+            if (!ALEConfig::GetInstance().IsCompatibilityModeEnabled())
             {
                 ALE** stateSlot = ALE::GetMapStateSlot(map->GetId(), map->GetInstanceId());
                 object->ALEEvents = new ALEEventProcessor(stateSlot, object);

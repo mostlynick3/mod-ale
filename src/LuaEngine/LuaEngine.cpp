@@ -125,6 +125,9 @@ void ALE::Uninitialize()
 
 ALE** ALE::CreateMapState(uint32 mapId, uint32 instanceId)
 {
+    if (!ALEConfig::GetInstance().ShouldMapLoadALE(mapId))
+        return nullptr;
+
     ALE** slotPtr;
     uint64 key = ((uint64)mapId << 32) | instanceId;
     {
@@ -174,7 +177,7 @@ void ALE::LoadScriptPaths()
     lua_requirepath.clear();
     lua_requirecpath.clear();
 
-    GetScripts(lua_folderpath);
+    GetScripts(lua_folderpath, 0);
 
     // append our custom require paths and cpaths if the config variables are not empty
     if (!lua_path_extra.empty())
@@ -667,7 +670,7 @@ int ALE::LoadCompiledScript(lua_State* L, const std::string& filepath)
 }
 
 // Finds lua script files from given path (including subdirectories) and pushes them to scripts
-void ALE::GetScripts(std::string path)
+void ALE::GetScripts(std::string path, uint32 mapId)
 {
     ALE_LOG_DEBUG("[ALE]: GetScripts from path `{}`", path);
 
@@ -703,7 +706,10 @@ void ALE::GetScripts(std::string path)
             // load subfolder
             if (boost::filesystem::is_directory(dir_iter->status()))
             {
-                GetScripts(fullpath);
+                std::string folderName = dir_iter->path().filename().generic_string();
+                if (!ALEConfig::GetInstance().ShouldMapLoadALEByFolderName(folderName, mapId))
+                    continue;
+                GetScripts(fullpath, mapId);
                 continue;
             }
 
@@ -753,6 +759,11 @@ void ALE::RunScripts()
     int modules = lua_gettop(L);
     for (ScriptList::iterator it = scripts.begin(); it != scripts.end(); ++it)
     {
+        // Filter by map-prefixed subdirectory
+        std::string folderName = boost::filesystem::path(it->modulepath).filename().generic_string();
+        if (!ALEConfig::GetInstance().ShouldMapLoadALEByFolderName(folderName, stateMapId))
+            continue;
+
         // Check that no duplicate names exist
         if (loaded.find(it->filename) != loaded.end())
         {

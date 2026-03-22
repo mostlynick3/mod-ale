@@ -195,7 +195,7 @@ private:
     // This is called on world update to reload ALE
     static void _ReloadALE();
     static void LoadScriptPaths();
-    static void GetScripts(std::string path);
+    static void GetScripts(std::string path, uint32 mapId = 0);
     static void AddScriptPath(std::string filename, const std::string& fullpath);
     static int LoadCompiledScript(lua_State* L, const std::string& filepath);
     static std::time_t GetFileModTime(const std::string& filepath);
