@@ -317,11 +317,14 @@ public:
     // Returns a stable pointer-to-pointer for the map state slot, for use by ALEEventProcessor.
     static ALE** GetMapStateSlot(uint32 mapId, uint32 instanceId = 0)
     {
-        std::shared_lock lock(g_states_mutex);
         uint64 key = ((uint64)mapId << 32) | instanceId;
-        auto it = g_states.find(key);
-        ASSERT(it != g_states.end());
-        return &it->second;
+        {
+            std::shared_lock lock(g_states_mutex);
+            auto it = g_states.find(key);
+            if (it != g_states.end())
+                return &it->second;
+        }
+        return CreateMapState(mapId, instanceId);
     }
 
     // Never returns nullptr
