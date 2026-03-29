@@ -106,7 +106,9 @@ struct LuaScript
 
 #define ALE_STATE_PTR "ALE State Ptr"
 #define LOCK_ALE ALE::Guard __guard(ALE::GetLock())
-#define LOCK_ALE_STATE ALE::Guard __guard(this->GetStateLock())
+#define LOCK_ALE_STATE \
+    ALE::Guard __ale_guard(ALEConfig::GetInstance().IsCompatibilityModeEnabled() ? ALE::GetLock() : ALE::GetNoopLock()); \
+    Guard __ale_state_guard(this->GetStateLock())
 #define ALE_GLOBAL_STATE (uint32)(-1)
 
 #define ALE_GAME_API AC_GAME_API
@@ -123,6 +125,7 @@ public:
     const std::string& GetRequireCPath() const { return lua_requirecpath; }
 
     LockType& GetStateLock() { return stateLock; }
+    static LockType& GetNoopLock() { thread_local LockType noop; return noop; }
     uint32 GetStateMapId() const { return stateMapId; }
     uint32 GetStateInstanceId() const { return stateInstanceId; }
     ALE** GetSelfPtr() { return selfPtr ? selfPtr : &ALE::GALE; }
