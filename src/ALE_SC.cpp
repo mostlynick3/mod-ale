@@ -24,6 +24,7 @@
 #include "Vehicle.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
+#include "ALEInstanceAI.h"
 
 class ALE_AllCreatureScript : public AllCreatureScript
 {
@@ -262,6 +263,13 @@ public:
 
 class ALE_AllMapScript : public AllMapScript
 {
+    std::unordered_map<uint64, ALEInstanceAI*> _instanceAIs;
+
+    uint64 MakeKey(Map* map)
+    {
+        return ((uint64)map->GetId() << 32) | map->GetInstanceId();
+    }
+
 public:
     ALE_AllMapScript() : AllMapScript("ALE_AllMapScript", {
         ALLMAPHOOK_ON_BEFORE_CREATE_INSTANCE_SCRIPT,
@@ -297,6 +305,16 @@ public:
                 ALE::CreateMapState(map->GetId(), map->GetInstanceId());
         }
         ALE::GetMapStateOrGlobal(map->GetId(), map->GetInstanceId())->OnCreate(map);
+
+        if (!map->Instanceable())
+        {
+            ALE* sALE = ALE::GetMapStateOrGlobal(map->GetId(), map->GetInstanceId());
+            if (ALEInstanceAI* ai = static_cast<ALEInstanceAI*>(sALE->GetInstanceData(map)))
+            {
+                _instanceAIs[MakeKey(map)] = ai;
+                ai->Initialize();
+            }
+        }
     }
 
     void OnDestroyMap(Map* map) override
@@ -304,11 +322,23 @@ public:
         ALE::GetMapStateOrGlobal(map->GetId(), map->GetInstanceId())->OnDestroy(map);
         if (!ALEConfig::GetInstance().IsCompatibilityModeEnabled())
             ALE::DestroyMapState(map->GetId(), map->GetInstanceId());
+
+        uint64 key = MakeKey(map);
+        auto it = _instanceAIs.find(key);
+        if (it != _instanceAIs.end())
+        {
+            delete it->second;
+            _instanceAIs.erase(it);
+        }
     }
 
     void OnPlayerEnterAll(Map* map, Player* player) override
     {
         ALE::GetMapStateOrGlobal(map->GetId(), map->GetInstanceId())->OnPlayerEnter(map, player);
+
+        auto it = _instanceAIs.find(MakeKey(map));
+        if (it != _instanceAIs.end())
+            it->second->OnPlayerEnter(player);
     }
 
     void OnPlayerLeaveAll(Map* map, Player* player) override
@@ -319,6 +349,10 @@ public:
     void OnMapUpdate(Map* map, uint32 diff) override
     {
         ALE::GetMapStateOrGlobal(map->GetId(), map->GetInstanceId())->OnUpdate(map, diff);
+
+        auto it = _instanceAIs.find(MakeKey(map));
+        if (it != _instanceAIs.end())
+            it->second->Update(diff);
     }
 };
 
