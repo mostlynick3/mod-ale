@@ -50,7 +50,7 @@ extern "C"
 #include "GemPropertiesEntryMethods.h"
 #include "SpellEntryMethods.h"
 
-luaL_Reg GlobalMethods[] =
+ALEGlobalRegister GlobalMethods[] =
 {
     // Hooks
     { "RegisterPacketEvent", &LuaGlobalFunctions::RegisterPacketEvent },
@@ -101,14 +101,14 @@ luaL_Reg GlobalMethods[] =
     { "GetRealmID", &LuaGlobalFunctions::GetRealmID },
     { "GetCoreVersion", &LuaGlobalFunctions::GetCoreVersion },
     { "GetCoreExpansion", &LuaGlobalFunctions::GetCoreExpansion },
-    { "GetStateMap", &LuaGlobalFunctions::GetStateMap },
+    { "GetStateMap", &LuaGlobalFunctions::GetStateMap, METHOD_REG_MAP }, // Map state method only in multistate
     { "GetStateMapId", &LuaGlobalFunctions::GetStateMapId },
     { "GetStateInstanceId", &LuaGlobalFunctions::GetStateInstanceId },
     { "GetQuest", &LuaGlobalFunctions::GetQuest },
-    { "GetPlayerByGUID", &LuaGlobalFunctions::GetPlayerByGUID },
-    { "GetPlayerByName", &LuaGlobalFunctions::GetPlayerByName },
+    { "GetPlayerByGUID", &LuaGlobalFunctions::GetPlayerByGUID, METHOD_REG_WORLD }, // World state method only in multistate
+    { "GetPlayerByName", &LuaGlobalFunctions::GetPlayerByName, METHOD_REG_WORLD }, // World state method only in multistate
     { "GetGameTime", &LuaGlobalFunctions::GetGameTime },
-    { "GetPlayersInWorld", &LuaGlobalFunctions::GetPlayersInWorld },
+    { "GetPlayersInWorld", &LuaGlobalFunctions::GetPlayersInWorld, METHOD_REG_WORLD }, // World state method only in multistate
     { "GetGuildByName", &LuaGlobalFunctions::GetGuildByName },
     { "GetGuildByLeaderGUID", &LuaGlobalFunctions::GetGuildByLeaderGUID },
     { "GetPlayerCount", &LuaGlobalFunctions::GetPlayerCount },
@@ -130,7 +130,7 @@ luaL_Reg GlobalMethods[] =
     { "bit_or", &LuaGlobalFunctions::bit_or },
     { "bit_and", &LuaGlobalFunctions::bit_and },
     { "GetItemLink", &LuaGlobalFunctions::GetItemLink },
-    { "GetMapById", &LuaGlobalFunctions::GetMapById },
+    { "GetMapById", &LuaGlobalFunctions::GetMapById, METHOD_REG_WORLD }, // World state method only in multistate
     { "GetCurrTime", &LuaGlobalFunctions::GetCurrTime },
     { "GetTimeDiff", &LuaGlobalFunctions::GetTimeDiff },
     { "PrintInfo", &LuaGlobalFunctions::PrintInfo },
@@ -180,7 +180,7 @@ luaL_Reg GlobalMethods[] =
     { "StartGameEvent", &LuaGlobalFunctions::StartGameEvent },
     { "StopGameEvent", &LuaGlobalFunctions::StopGameEvent },
     { "HttpRequest", &LuaGlobalFunctions::HttpRequest },
-    { "SetOwnerHalaa", &LuaGlobalFunctions::SetOwnerHalaa },
+    { "SetOwnerHalaa", &LuaGlobalFunctions::SetOwnerHalaa, METHOD_REG_WORLD }, // World state method only in multistate
     { "LookupEntry", &LuaGlobalFunctions::LookupEntry },
 
     { NULL, NULL }
@@ -278,9 +278,9 @@ ALERegister<WorldObject> WorldObjectMethods[] =
     { "SummonGameObject", &LuaWorldObject::SummonGameObject },
     { "SpawnCreature", &LuaWorldObject::SpawnCreature },
     { "SendPacket", &LuaWorldObject::SendPacket },
-    { "RegisterEvent", &LuaWorldObject::RegisterEvent },
-    { "RemoveEventById", &LuaWorldObject::RemoveEventById },
-    { "RemoveEvents", &LuaWorldObject::RemoveEvents },
+    { "RegisterEvent", &LuaWorldObject::RegisterEvent, METHOD_REG_MAP }, // Map state method only in multistate
+    { "RemoveEventById", &LuaWorldObject::RemoveEventById, METHOD_REG_MAP }, // Map state method only in multistate
+    { "RemoveEvents", &LuaWorldObject::RemoveEvents, METHOD_REG_MAP }, // Map state method only in multistate
     { "PlayMusic", &LuaWorldObject::PlayMusic },
     { "PlayDirectSound", &LuaWorldObject::PlayDirectSound },
     { "PlayDistanceSound", &LuaWorldObject::PlayDistanceSound },
@@ -813,8 +813,8 @@ ALERegister<Player> PlayerMethods[] =
     { "Mute", &LuaPlayer::Mute },
     { "SummonPlayer", &LuaPlayer::SummonPlayer },
     { "SaveToDB", &LuaPlayer::SaveToDB },
-    { "GroupInvite", &LuaPlayer::GroupInvite },
-    { "GroupCreate", &LuaPlayer::GroupCreate },
+    { "GroupInvite", &LuaPlayer::GroupInvite, METHOD_REG_WORLD }, // World state method only in multistate
+    { "GroupCreate", &LuaPlayer::GroupCreate, METHOD_REG_WORLD }, // World state method only in multistate
     { "SendCinematicStart", &LuaPlayer::SendCinematicStart },
     { "SendMovieStart", &LuaPlayer::SendMovieStart },
     { "UpdatePlayerSetting", &LuaPlayer::UpdatePlayerSetting },
@@ -1149,7 +1149,7 @@ ALERegister<Quest> QuestMethods[] =
 ALERegister<Group> GroupMethods[] =
 {
     // Getters
-    { "GetMembers", &LuaGroup::GetMembers },
+    { "GetMembers", &LuaGroup::GetMembers, METHOD_REG_WORLD }, // World state method only in multistate
     { "GetLeaderGUID", &LuaGroup::GetLeaderGUID },
     { "GetGUID", &LuaGroup::GetGUID },
     { "GetMemberGroup", &LuaGroup::GetMemberGroup },
@@ -1158,16 +1158,16 @@ ALERegister<Group> GroupMethods[] =
     { "GetGroupType", &LuaGroup::GetGroupType },
 
     // Setters
-    { "SetLeader", &LuaGroup::SetLeader },
-    { "SetMembersGroup", &LuaGroup::SetMembersGroup },
-    { "SetTargetIcon", &LuaGroup::SetTargetIcon },
-    { "SetMemberFlag", &LuaGroup::SetMemberFlag },
+    { "SetLeader", &LuaGroup::SetLeader, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SetMembersGroup", &LuaGroup::SetMembersGroup, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SetTargetIcon", &LuaGroup::SetTargetIcon, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SetMemberFlag", &LuaGroup::SetMemberFlag, METHOD_REG_WORLD }, // World state method only in multistate
 
     // Boolean
     { "IsLeader", &LuaGroup::IsLeader },
-    { "AddMember", &LuaGroup::AddMember },
-    { "RemoveMember", &LuaGroup::RemoveMember },
-    { "Disband", &LuaGroup::Disband },
+    { "AddMember", &LuaGroup::AddMember, METHOD_REG_WORLD }, // World state method only in multistate
+    { "RemoveMember", &LuaGroup::RemoveMember, METHOD_REG_WORLD }, // World state method only in multistate
+    { "Disband", &LuaGroup::Disband, METHOD_REG_WORLD }, // World state method only in multistate
     { "IsFull", &LuaGroup::IsFull },
     { "IsLFGGroup", &LuaGroup::IsLFGGroup },
     { "IsRaidGroup", &LuaGroup::IsRaidGroup },
@@ -1181,7 +1181,7 @@ ALERegister<Group> GroupMethods[] =
     // Other
     { "SendPacket", &LuaGroup::SendPacket },
     // {"ConvertToLFG", &LuaGroup::ConvertToLFG},                 // :ConvertToLFG() - UNDOCUMENTED - Converts the group to an LFG group
-    { "ConvertToRaid", &LuaGroup::ConvertToRaid },
+    { "ConvertToRaid", &LuaGroup::ConvertToRaid, METHOD_REG_WORLD }, // World state method only in multistate
 
     { NULL, NULL }
 };
@@ -1189,8 +1189,8 @@ ALERegister<Group> GroupMethods[] =
 ALERegister<Guild> GuildMethods[] =
 {
     // Getters
-    { "GetMembers", &LuaGuild::GetMembers },
-    { "GetLeader", &LuaGuild::GetLeader },
+    { "GetMembers", &LuaGuild::GetMembers, METHOD_REG_WORLD }, // World state method only in multistate
+    { "GetLeader", &LuaGuild::GetLeader, METHOD_REG_WORLD }, // World state method only in multistate
     { "GetLeaderGUID", &LuaGuild::GetLeaderGUID },
     { "GetId", &LuaGuild::GetId },
     { "GetName", &LuaGuild::GetName },
@@ -1201,24 +1201,24 @@ ALERegister<Guild> GuildMethods[] =
     { "GetTotalBankMoney", &LuaGuild::GetTotalBankMoney },
 
     // Setters
-    { "SetBankTabText", &LuaGuild::SetBankTabText },
-    { "SetMemberRank", &LuaGuild::SetMemberRank },
-    { "SetLeader", &LuaGuild::SetLeader },
-    { "SetName", &LuaGuild::SetName },
+    { "SetBankTabText", &LuaGuild::SetBankTabText, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SetMemberRank", &LuaGuild::SetMemberRank, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SetLeader", &LuaGuild::SetLeader, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SetName", &LuaGuild::SetName, METHOD_REG_WORLD }, // World state method only in multistate
 
     // Other
     { "SendPacket", &LuaGuild::SendPacket },
     { "SendPacketToRanked", &LuaGuild::SendPacketToRanked },
-    { "Disband", &LuaGuild::Disband },
-    { "AddMember", &LuaGuild::AddMember },
-    { "DeleteMember", &LuaGuild::DeleteMember },
+    { "Disband", &LuaGuild::Disband, METHOD_REG_WORLD }, // World state method only in multistate
+    { "AddMember", &LuaGuild::AddMember, METHOD_REG_WORLD }, // World state method only in multistate
+    { "DeleteMember", &LuaGuild::DeleteMember, METHOD_REG_WORLD }, // World state method only in multistate
     { "SendMessage", &LuaGuild::SendMessage },
-    { "UpdateMemberData", &LuaGuild::UpdateMemberData },
-    { "MassInviteToEvent", &LuaGuild::MassInviteToEvent },
-    { "SwapItems", &LuaGuild::SwapItems },
-    { "SwapItemsWithInventory", &LuaGuild::SwapItemsWithInventory },
-    { "ResetTimes", &LuaGuild::ResetTimes },
-    { "ModifyBankMoney", &LuaGuild::ModifyBankMoney },
+    { "UpdateMemberData", &LuaGuild::UpdateMemberData, METHOD_REG_WORLD }, // World state method only in multistate
+    { "MassInviteToEvent", &LuaGuild::MassInviteToEvent, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SwapItems", &LuaGuild::SwapItems, METHOD_REG_WORLD }, // World state method only in multistate
+    { "SwapItemsWithInventory", &LuaGuild::SwapItemsWithInventory, METHOD_REG_WORLD }, // World state method only in multistate
+    { "ResetTimes", &LuaGuild::ResetTimes, METHOD_REG_WORLD }, // World state method only in multistate
+    { "ModifyBankMoney", &LuaGuild::ModifyBankMoney, METHOD_REG_WORLD }, // World state method only in multistate
 
     { NULL, NULL }
 };
