@@ -2433,8 +2433,7 @@ namespace LuaGlobalFunctions
      */
     int IsCompatibilityMode(lua_State* L)
     {
-        // Until AC supports multistate, this will always return true
-        ALE::Push(L, true);
+        ALE::Push(L, ALEConfig::GetInstance().IsCompatibilityModeEnabled());
         return 1;
     }
 
