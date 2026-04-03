@@ -142,6 +142,8 @@ namespace LuaGlobalFunctions
     /**
      * Returns the [Map] pointer of the Lua state. Returns null for the "World" state. 
      *
+     * In multistate, this method is only available in the MAP state
+     *
      * @return [Map] map
      */
     int GetStateMap(lua_State* L)
@@ -205,6 +207,8 @@ namespace LuaGlobalFunctions
     /**
      * Finds and Returns [Player] by guid if found
      *
+     * In multistate, this method is only available in the WORLD state
+     *
      * @param ObjectGuid guid : guid of the [Player], you can get it with [Object:GetGUID]
      * @return [Player] player
      */
@@ -217,6 +221,8 @@ namespace LuaGlobalFunctions
 
     /**
      * Finds and Returns [Player] by name if found
+     *
+     * In multistate, this method is only available in the WORLD state
      *
      * @param string name : name of the [Player]
      * @return [Player] player
@@ -250,6 +256,8 @@ namespace LuaGlobalFunctions
      *         TEAM_HORDE = 1,
      *         TEAM_NEUTRAL = 2
      *     };
+     *
+     * In multistate, this method is only available in the WORLD state
      *
      * @param [TeamId] team = TEAM_NEUTRAL : optional check team of the [Player], Alliance, Horde or Neutral (All)
      * @param bool onlyGM = false : optional check if GM only
@@ -302,6 +310,8 @@ namespace LuaGlobalFunctions
 
     /**
      * Returns a [Map] by ID.
+     *
+     * In multistate, this method is only available in the WORLD state
      *
      * @param uint32 mapId : see [Map.dbc](https://github.com/cmangos/issues/wiki/Map.dbc)
      * @param uint32 instanceId = 0 : required if the map is an instance, otherwise don't pass anything
@@ -3409,6 +3419,8 @@ namespace LuaGlobalFunctions
      * 600 = slider max Alliance
      * -600 = slider max Horde
      *
+     * In multistate, this method is only available in the WORLD state
+     *
      * @return int16 the ID of the team to own Halaa
      * @return float the slider position.
      */
@@ -3426,6 +3438,8 @@ namespace LuaGlobalFunctions
      * Sets the owner of Halaa in Nagrand to the respective faction
      * 0 = Alliance
      * 1 = Horde
+     *
+     * In multistate, this method is only available in the WORLD state
      *
      * @param uint16 teamId : the ID of the team to own Halaa
      */
