@@ -278,9 +278,9 @@ ALERegister<WorldObject> WorldObjectMethods[] =
     { "SummonGameObject", &LuaWorldObject::SummonGameObject },
     { "SpawnCreature", &LuaWorldObject::SpawnCreature },
     { "SendPacket", &LuaWorldObject::SendPacket },
-    { "RegisterEvent", &LuaWorldObject::RegisterEvent, METHOD_REG_MAP }, // Map state method only in multistate
-    { "RemoveEventById", &LuaWorldObject::RemoveEventById, METHOD_REG_MAP }, // Map state method only in multistate
-    { "RemoveEvents", &LuaWorldObject::RemoveEvents, METHOD_REG_MAP }, // Map state method only in multistate
+    { "RegisterEvent", &LuaWorldObject::RegisterEvent },
+    { "RemoveEventById", &LuaWorldObject::RemoveEventById },
+    { "RemoveEvents", &LuaWorldObject::RemoveEvents },
     { "PlayMusic", &LuaWorldObject::PlayMusic },
     { "PlayDirectSound", &LuaWorldObject::PlayDirectSound },
     { "PlayDistanceSound", &LuaWorldObject::PlayDistanceSound },
