@@ -668,7 +668,7 @@ public:
         PLAYERHOOK_ON_PLAYER_RELEASED_GHOST
     }) { }
 
-    void OnPlayerResurrect(Player* player, float /*restore_percent*/, bool /*applySickness*/) override
+    void OnPlayerResurrect(Player* player, float /*restore_percent*/, bool& /*applySickness*/) override
     {
         ALE::GetMapStateOrGlobal(player->GetMapId(), player->GetInstanceId())->OnResurrect(player);
     }
